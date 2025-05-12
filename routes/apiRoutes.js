@@ -5,7 +5,7 @@ const pool = require('../db'); // Importa la conexión a la base de datos
 
 
 // Habilitar CORS
-app.use(cors());
+express.use(cors());
 
 
 // Ruta de prueba para verificar la conexión
