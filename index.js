@@ -4,6 +4,12 @@ require('dotenv').config(); // Carga las variables de entorno
 const apiRoutes = require('./routes/apiRoutes'); // Importa las rutas
 
 const app = express();
+const cors = require('cors');
+
+// Habilitar CORS
+app.use(cors());
+
+
 const port = process.env.PORT || 3000; // Usa el puerto desde las variables de entorno
 
 // Middleware para parsear JSON

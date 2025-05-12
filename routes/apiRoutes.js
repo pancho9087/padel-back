@@ -1,11 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const cors = require('cors');
 const pool = require('../db'); // Importa la conexión a la base de datos
 
-
-// Habilitar CORS
-express.use(cors());
 
 
 // Ruta de prueba para verificar la conexión
