@@ -27,7 +27,7 @@ router.get('/another', async (req, res) => {
 });
 
 
-router.post('/api/reservations/batch', async (req, res) => {
+router.post('/reservations/batch', async (req, res) => {
   const client = await pool.connect();
   try {
     // Validación básica
@@ -94,7 +94,7 @@ router.post('/api/reservations/batch', async (req, res) => {
 });
 
 // Disponibilidad
-router.get('/api/reservations/availability', async (req, res) => {
+router.get('/reservations/availability', async (req, res) => {
   try {
     const { date, court_id, start, end } = req.query;
     
@@ -119,7 +119,7 @@ router.get('/api/reservations/availability', async (req, res) => {
 });
 
 // Obtener reservas por rango de fechas
-router.get('/api/reservations', async (req, res) => {
+router.get('/reservations', async (req, res) => {
   try {
     const { start_date, end_date } = req.query;
     
