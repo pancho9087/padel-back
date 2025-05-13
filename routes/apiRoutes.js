@@ -111,4 +111,13 @@ router.get('/api/reservations', async (req, res) => {
 });
 
 
+router.get('/courts', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, name FROM courts WHERE status = $1', ['active']);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
