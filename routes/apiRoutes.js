@@ -27,38 +27,67 @@ router.get('/another', async (req, res) => {
 });
 
 
-// Endpoints
 router.post('/api/reservations/batch', async (req, res) => {
   const client = await pool.connect();
   try {
+    // Validación básica
+    if (!Array.isArray(req.body.reservations)) {
+      return res.status(400).json({ error: 'Formato de datos inválido' });
+    }
+
     await client.query('BEGIN');
     
-    const reservations = req.body.reservations;
     const inserted = [];
+    const errors = [];
     
-    for (const resv of reservations) {
-      const result = await client.query(
-        `INSERT INTO reservations 
-        (date, start_time, end_time, court_id, client_id) 
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *`,
-        [resv.date, resv.start_time, resv.end_time, resv.court_id, resv.client_id]
-      );
-      inserted.push(result.rows[0]);
+    for (const [index, resv] of req.body.reservations.entries()) {
+      try {
+        // Validación de campos requeridos
+        if (!resv.date || !resv.start_time || !resv.end_time || !resv.court_id || !resv.client_id) {
+          errors.push({ index, error: 'Campos requeridos faltantes' });
+          continue;
+        }
+
+        const result = await client.query(
+          `INSERT INTO reservations 
+          (date, start_time, end_time, court_id, client_id) 
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING id, date, start_time, end_time, court_id`,
+          [resv.date, resv.start_time, resv.end_time, resv.court_id, resv.client_id]
+        );
+        inserted.push(result.rows[0]);
+      } catch (err) {
+        errors.push({ 
+          index,
+          error: err.constraint === 'no_overlap_reservation' 
+            ? 'Conflicto de horario' 
+            : err.message
+        });
+      }
     }
     
     await client.query('COMMIT');
-    res.status(201).json(inserted);
-  } catch (err) {
-    await client.query('ROLLBACK');
     
-    if (err.constraint === 'no_overlap_reservation') {
-      return res.status(409).json({ 
-        error: 'Conflicto de horario: Ya existe una reserva en ese periodo' 
+    if (errors.length > 0) {
+      res.status(207).json({ // 207 Multi-Status
+        success: true,
+        inserted,
+        errors,
+        message: 'Algunas reservas no se pudieron procesar'
+      });
+    } else {
+      res.status(201).json({
+        success: true,
+        inserted,
+        message: 'Todas las reservas fueron creadas'
       });
     }
-    
-    res.status(500).json({ error: err.message });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    res.status(500).json({ 
+      success: false,
+      error: err.message 
+    });
   } finally {
     client.release();
   }
