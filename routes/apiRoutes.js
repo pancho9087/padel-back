@@ -118,6 +118,41 @@ router.get('/reservations/availability', async (req, res) => {
   }
 });
 
+
+
+
+router.get('/courts', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, name FROM courts WHERE status = $1', ['active']);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// // En tu backend (routes/reservations.js)
+// router.get('/reservations', async (req, res) => {
+//   try {
+//     const { startDate, endDate } = req.query;
+    
+//     const result = await pool.query(
+//       `SELECT r.id, r.date, r.start_time, r.end_time, 
+//               r.court_id, r.client_id,
+//               c.name AS client_name, c.color AS client_color
+//        FROM reservations r
+//        LEFT JOIN clients c ON r.client_id = c.id
+//        WHERE r.date BETWEEN $1 AND $2
+//        ORDER BY r.date, r.start_time`,
+//       [startDate, endDate]
+//     );
+    
+//     res.json(result.rows);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+
 // Obtener reservas por rango de fechas
 router.get('/reservations', async (req, res) => {
   try {
@@ -133,16 +168,6 @@ router.get('/reservations', async (req, res) => {
       [start_date, end_date]
     );
     
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-router.get('/courts', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT id, name FROM courts WHERE status = $1', ['active']);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
